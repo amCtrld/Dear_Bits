@@ -19,7 +19,7 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-foreground">
-            Diabetes Detection System
+            Dear_Bits
           </h1>
           <div className="flex items-center gap-8">
             {navItems.map((item) => (

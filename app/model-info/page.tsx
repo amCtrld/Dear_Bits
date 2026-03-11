@@ -1,7 +1,6 @@
 'use client';
 
 import { Navigation } from '@/components/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BarChart,
   Bar,
@@ -10,30 +9,25 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 
 export default function ModelInfoPage() {
   const modelMetrics = [
-    { label: 'Model Type', value: 'Random Forest' },
-    { label: 'Training Accuracy', value: '89%' },
-    { label: 'Testing Accuracy', value: '87%' },
+    { label: 'Model Type', value: 'Random Forest', mono: true },
+    { label: 'Training Accuracy', value: '89', unit: '%' },
+    { label: 'Testing Accuracy', value: '87', unit: '%' },
   ];
 
-  const datasetInfo = {
-    name: 'PIMA Indians Diabetes Dataset',
-    records: 768,
-    features: 8,
-  };
-
   const features = [
-    'Pregnancies',
-    'Glucose',
-    'Blood Pressure',
-    'Skin Thickness',
-    'Insulin',
-    'BMI',
-    'Diabetes Pedigree Function',
-    'Age',
+    { name: 'Pregnancies', abbr: 'PREG' },
+    { name: 'Glucose', abbr: 'GLUC' },
+    { name: 'Blood Pressure', abbr: 'BP' },
+    { name: 'Skin Thickness', abbr: 'SKIN' },
+    { name: 'Insulin', abbr: 'INS' },
+    { name: 'BMI', abbr: 'BMI' },
+    { name: 'Diabetes Pedigree Function', abbr: 'DPF' },
+    { name: 'Age', abbr: 'AGE' },
   ];
 
   const featureImportance = [
@@ -47,149 +41,486 @@ export default function ModelInfoPage() {
     { name: 'Diabetes Pedigree', importance: 1 },
   ];
 
+  const methodology = [
+    {
+      step: '01',
+      title: 'Data Preprocessing',
+      body: 'Missing values imputed, features normalised, and class imbalance addressed prior to training.',
+    },
+    {
+      step: '02',
+      title: 'Ensemble Training',
+      body: 'Multiple decision trees combined via bagging to reduce overfitting and improve generalisation.',
+    },
+    {
+      step: '03',
+      title: 'Validation',
+      body: 'Stratified train/test split (80/20) evaluated on accuracy, precision, recall, and F1-score.',
+    },
+    {
+      step: '04',
+      title: 'Feature Importance',
+      body: 'Ranked by mean decrease in impurity — glucose and BMI emerge as dominant predictors.',
+    },
+  ];
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{
+          background: '#faf8f5',
+          border: '1px solid #ddd8d0',
+          padding: '10px 14px',
+          fontFamily: "'DM Mono', monospace",
+          fontSize: '11px',
+          color: '#1a1714',
+        }}>
+          <p style={{ color: '#9a948d', marginBottom: 4, letterSpacing: '0.08em' }}>{label}</p>
+          <p style={{ color: '#c0392b' }}>{payload[0].value}% importance</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
-      <Navigation />
-      <main className="min-h-screen bg-background">
-        <div className="max-w-5xl mx-auto px-6 py-12">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-foreground">
-              Model Information
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Technical details about the diabetes prediction model
-            </p>
-          </div>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap');
 
-          {/* Model Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {modelMetrics.map((metric, index) => (
-              <Card key={index} className="border border-border bg-card">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {metric.label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-semibold text-foreground">
-                    {metric.value}
-                  </p>
-                </CardContent>
-              </Card>
+        :root {
+          --cream: #f7f4ef;
+          --ink: #1a1714;
+          --ink-soft: #4a4540;
+          --ink-faint: #9a948d;
+          --rule: #ddd8d0;
+          --accent: #c0392b;
+          --card-bg: #faf8f5;
+        }
+
+        body { background: var(--cream); }
+
+        .mi-root {
+          font-family: 'Instrument Sans', sans-serif;
+          min-height: 100vh;
+          background: var(--cream);
+          color: var(--ink);
+        }
+
+        /* ── Header ── */
+        .mi-header {
+          border-bottom: 1px solid var(--rule);
+          padding: 48px 0 40px;
+          text-align: center;
+          position: relative;
+        }
+        .mi-header::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 50%; transform: translateX(-50%);
+          width: 1px; height: 24px;
+          background: var(--rule);
+        }
+        .mi-eyebrow {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--ink-faint);
+          margin-bottom: 16px;
+        }
+        .mi-title {
+          font-family: 'DM Serif Display', serif;
+          font-size: clamp(26px, 3.5vw, 42px);
+          font-weight: 400;
+          color: var(--ink);
+          margin-bottom: 10px;
+          letter-spacing: -0.01em;
+        }
+        .mi-title em { font-style: italic; color: var(--accent); }
+        .mi-subtitle {
+          font-size: 13px;
+          color: var(--ink-faint);
+        }
+
+        /* ── Body ── */
+        .mi-body {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 0 32px 80px;
+        }
+
+        /* ── Section label ── */
+        .section-label {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--ink-faint);
+          margin: 52px 0 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .section-label::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: var(--rule);
+        }
+
+        /* ── Metrics row ── */
+        .metrics-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          border: 1px solid var(--rule);
+        }
+        @media (max-width: 600px) {
+          .metrics-row { grid-template-columns: 1fr; }
+          .metric-cell { border-right: none !important; border-bottom: 1px solid var(--rule); }
+        }
+        .metric-cell {
+          padding: 28px 24px;
+          background: var(--card-bg);
+          border-right: 1px solid var(--rule);
+          position: relative;
+          transition: background 0.2s;
+        }
+        .metric-cell:last-child { border-right: none; }
+        .metric-cell:hover { background: #fff; }
+        .metric-label {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ink-faint);
+          margin-bottom: 16px;
+        }
+        .metric-value {
+          font-family: 'DM Serif Display', serif;
+          font-size: 48px;
+          line-height: 1;
+          color: var(--ink);
+          display: flex;
+          align-items: baseline;
+          gap: 3px;
+        }
+        .metric-value.is-text {
+          font-size: 22px;
+          line-height: 1.2;
+        }
+        .metric-unit {
+          font-family: 'DM Serif Display', serif;
+          font-size: 24px;
+          color: var(--accent);
+        }
+        .metric-bar {
+          position: absolute;
+          bottom: 0; left: 0;
+          height: 2px;
+          background: var(--accent);
+          opacity: 0.4;
+          transition: opacity 0.2s;
+        }
+        .metric-cell:hover .metric-bar { opacity: 1; }
+
+        /* ── Dataset strip ── */
+        .dataset-strip {
+          border: 1px solid var(--rule);
+          background: var(--card-bg);
+          display: grid;
+          grid-template-columns: 1fr auto auto;
+          align-items: center;
+          gap: 0;
+        }
+        @media (max-width: 600px) {
+          .dataset-strip { grid-template-columns: 1fr; }
+          .ds-stat { border-left: none !important; border-top: 1px solid var(--rule); }
+        }
+        .ds-main {
+          padding: 24px 28px;
+        }
+        .ds-name {
+          font-family: 'DM Serif Display', serif;
+          font-size: 18px;
+          font-weight: 400;
+          color: var(--ink);
+          margin-bottom: 4px;
+        }
+        .ds-source {
+          font-size: 12px;
+          color: var(--ink-faint);
+        }
+        .ds-stat {
+          padding: 24px 28px;
+          border-left: 1px solid var(--rule);
+          text-align: center;
+        }
+        .ds-stat-val {
+          font-family: 'DM Serif Display', serif;
+          font-size: 32px;
+          color: var(--ink);
+        }
+        .ds-stat-label {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--ink-faint);
+          margin-top: 4px;
+        }
+
+        /* ── Features grid ── */
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          border: 1px solid var(--rule);
+        }
+        @media (max-width: 640px) {
+          .features-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .feature-cell {
+          padding: 20px 16px;
+          border-right: 1px solid var(--rule);
+          border-bottom: 1px solid var(--rule);
+          background: var(--card-bg);
+          transition: background 0.15s;
+          position: relative;
+        }
+        .feature-cell:hover { background: #fff; }
+        .feature-cell:nth-child(4n) { border-right: none; }
+        @media (max-width: 640px) {
+          .feature-cell:nth-child(4n) { border-right: 1px solid var(--rule); }
+          .feature-cell:nth-child(2n) { border-right: none; }
+        }
+        .feature-abbr {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          color: var(--accent);
+          margin-bottom: 6px;
+        }
+        .feature-index {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          color: var(--ink-faint);
+          position: absolute;
+          top: 12px;
+          right: 12px;
+        }
+        .feature-name {
+          font-size: 12px;
+          color: var(--ink-soft);
+          line-height: 1.4;
+        }
+
+        /* ── Chart ── */
+        .chart-card {
+          border: 1px solid var(--rule);
+          background: var(--card-bg);
+        }
+        .chart-header {
+          padding: 24px 28px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        .chart-title {
+          font-family: 'DM Serif Display', serif;
+          font-size: 18px;
+          font-weight: 400;
+          color: var(--ink);
+        }
+        .chart-note {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.1em;
+          color: var(--ink-faint);
+          text-align: right;
+          line-height: 1.6;
+        }
+        .chart-body {
+          padding: 24px 28px 28px;
+        }
+
+        /* ── Methodology ── */
+        .methodology-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          border: 1px solid var(--rule);
+        }
+        @media (max-width: 600px) {
+          .methodology-grid { grid-template-columns: 1fr; }
+          .meth-cell:nth-child(odd) { border-right: none !important; }
+          .meth-cell { border-bottom: 1px solid var(--rule); }
+        }
+        .meth-cell {
+          padding: 28px 28px;
+          background: var(--card-bg);
+          border-right: 1px solid var(--rule);
+          border-bottom: 1px solid var(--rule);
+          transition: background 0.2s;
+        }
+        .meth-cell:nth-child(even) { border-right: none; }
+        .meth-cell:nth-child(n+3) { border-bottom: none; }
+        .meth-cell:hover { background: #fff; }
+        .meth-step {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
+          color: var(--accent);
+          letter-spacing: 0.1em;
+          margin-bottom: 10px;
+        }
+        .meth-title {
+          font-family: 'DM Serif Display', serif;
+          font-size: 16px;
+          font-weight: 400;
+          color: var(--ink);
+          margin-bottom: 10px;
+        }
+        .meth-body {
+          font-size: 12px;
+          color: var(--ink-soft);
+          line-height: 1.7;
+        }
+
+        /* ── Footer ── */
+        .mi-footer {
+          margin-top: 64px;
+          padding-top: 24px;
+          border-top: 1px solid var(--rule);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .mi-footer span {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
+          color: var(--ink-faint);
+          letter-spacing: 0.08em;
+        }
+      `}</style>
+
+      <Navigation />
+
+      <main className="mi-root">
+        <header className="mi-header">
+          <p className="mi-eyebrow">Technical Reference · Random Forest Classifier</p>
+          <h1 className="mi-title">Model <em>Information</em></h1>
+          <p className="mi-subtitle">Architecture, dataset, and feature analysis</p>
+        </header>
+
+        <div className="mi-body">
+
+          {/* Metrics */}
+          <p className="section-label">Performance Metrics</p>
+          <div className="metrics-row">
+            {modelMetrics.map((m, i) => (
+              <div className="metric-cell" key={i}>
+                <p className="metric-label">{m.label}</p>
+                <div className={`metric-value${m.mono ? ' is-text' : ''}`}>
+                  {m.value}
+                  {m.unit && <span className="metric-unit">{m.unit}</span>}
+                </div>
+                {m.unit && (
+                  <div className="metric-bar" style={{ width: `${m.value}%` }} />
+                )}
+              </div>
             ))}
           </div>
 
-          {/* Dataset Information */}
-          <Card className="border border-border bg-card mb-8">
-            <CardHeader>
-              <CardTitle>Dataset Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Dataset Name</p>
-                <p className="text-foreground font-medium">
-                  {datasetInfo.name}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Total Records
-                  </p>
-                  <p className="text-foreground text-lg font-semibold">
-                    {datasetInfo.records}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Features Used
-                  </p>
-                  <p className="text-foreground text-lg font-semibold">
-                    {datasetInfo.features}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Dataset */}
+          <p className="section-label">Dataset</p>
+          <div className="dataset-strip">
+            <div className="ds-main">
+              <p className="ds-name">PIMA Indians Diabetes Dataset</p>
+              <p className="ds-source">UCI Machine Learning Repository · Binary classification benchmark</p>
+            </div>
+            <div className="ds-stat">
+              <div className="ds-stat-val">768</div>
+              <div className="ds-stat-label">Records</div>
+            </div>
+            <div className="ds-stat">
+              <div className="ds-stat-val">8</div>
+              <div className="ds-stat-label">Features</div>
+            </div>
+          </div>
 
           {/* Features */}
-          <Card className="border border-border bg-card mb-8">
-            <CardHeader>
-              <CardTitle>Features Used for Prediction</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {features.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 bg-secondary rounded-lg"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-primary-foreground text-xs font-semibold">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <span className="text-foreground text-sm">{feature}</span>
-                  </div>
-                ))}
+          <p className="section-label">Predictive Features</p>
+          <div className="features-grid">
+            {features.map((f, i) => (
+              <div className="feature-cell" key={i}>
+                <p className="feature-abbr">{f.abbr}</p>
+                <span className="feature-index">0{i + 1}</span>
+                <p className="feature-name">{f.name}</p>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
 
-          {/* Feature Importance */}
-          <Card className="border border-border bg-card">
-            <CardHeader>
-              <CardTitle>Feature Importance Visualization</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-6">
-                Relative importance of each feature in predicting diabetes risk
+          {/* Chart */}
+          <p className="section-label">Feature Importance</p>
+          <div className="chart-card">
+            <div className="chart-header">
+              <p className="chart-title">Relative Importance by Mean Decrease in Impurity</p>
+              <p className="chart-note">
+                Glucose &amp; BMI<br />dominant predictors
               </p>
-              <ResponsiveContainer width="100%" height={300}>
+            </div>
+            <div className="chart-body">
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart
                   data={featureImportance}
                   layout="vertical"
-                  margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
+                  margin={{ top: 0, right: 40, left: 120, bottom: 0 }}
+                  barSize={14}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={140} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '0.5rem',
-                    }}
+                  <CartesianGrid strokeDasharray="2 4" stroke="#ddd8d0" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fill: '#9a948d' }}
+                    axisLine={{ stroke: '#ddd8d0' }}
+                    tickLine={false}
+                    tickFormatter={(v) => `${v}%`}
                   />
-                  <Bar dataKey="importance" fill="hsl(var(--primary))" radius={4} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={110}
+                    tick={{ fontFamily: "'DM Mono', monospace", fontSize: 10, fill: '#4a4540' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f0ece6' }} />
+                  <Bar dataKey="importance" radius={0}>
+                    {featureImportance.map((entry, index) => (
+                      <Cell
+                        key={index}
+                        fill={index < 2 ? '#c0392b' : index < 4 ? '#d4685f' : '#e8a9a5'}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Methodology */}
-          <Card className="border border-border bg-card mt-8">
-            <CardHeader>
-              <CardTitle>Methodology</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>
-                The Random Forest model was trained using a binary classification
-                approach on the PIMA Indians Diabetes Dataset, a well-established
-                benchmark in healthcare AI research.
-              </p>
-              <p>
-                The model achieves 87% accuracy on testing data through ensemble
-                learning, combining multiple decision trees to improve prediction
-                robustness and reduce overfitting.
-              </p>
-              <p>
-                Feature importance is calculated using mean decrease in impurity,
-                revealing that glucose level and BMI are the strongest predictors
-                of diabetes risk in this dataset.
-              </p>
-            </CardContent>
-          </Card>
+          <p className="section-label">Methodology</p>
+          <div className="methodology-grid">
+            {methodology.map((m, i) => (
+              <div className="meth-cell" key={i}>
+                <p className="meth-step">{m.step}</p>
+                <p className="meth-title">{m.title}</p>
+                <p className="meth-body">{m.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mi-footer">
+            <span>Random Forest · PIMA Indians Diabetes Dataset</span>
+            <span>For research purposes only</span>
+          </div>
         </div>
       </main>
     </>
