@@ -335,7 +335,7 @@ export default function Dashboard() {
         <header className="dash-header">
           <p className="dash-eyebrow">MSc Research · Machine Learning in Clinical Diagnosis</p>
           <h1 className="dash-title">
-            Early Detection of <em>Diabetes</em> Using AI
+            Early Detection of <em>Diabetes</em> Using ML
           </h1>
           <p className="dash-subtitle">Random Forest model · PIMA Indians Diabetes Dataset</p>
         </header>
