@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { LayoutDashboard, BrainCircuit, ChartBar, Info, type LucideIcon } from 'lucide-react';
 
 export function Navigation() {
   const pathname = usePathname();
 
-  const navItems = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/predict', label: 'Predict' },
-    { href: '/results', label: 'Results' },
-    { href: '/model-info', label: 'Model Info' },
+  const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/predict', label: 'Predict', icon: BrainCircuit },
+    { href: '/results', label: 'Results', icon: ChartBar },
+    { href: '/model-info', label: 'Model Info', icon: Info },
   ];
 
   return (
@@ -21,7 +22,7 @@ export function Navigation() {
           <h1 className="text-lg font-semibold text-foreground">
             Dear_Bits
           </h1>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 sm:gap-8">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -33,7 +34,8 @@ export function Navigation() {
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                {item.label}
+                <item.icon className="h-5 w-5 sm:hidden" />
+                <span className="hidden sm:inline">{item.label}</span>
               </Link>
             ))}
           </div>
