@@ -332,7 +332,7 @@ export default function Dashboard() {
 
       <main className="dash-root">
         {/* Header */}
-        <header className="dash-header">
+        <header className="dash-header px-6">
           <p className="dash-eyebrow">MSc Research · Machine Learning in Clinical Diagnosis</p>
           <h1 className="dash-title">
             Early Detection of <em>Diabetes</em> Using ML
