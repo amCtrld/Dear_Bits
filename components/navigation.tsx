@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, BrainCircuit, ChartBar, Info, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, BrainCircuit, ChartBar, Info, MessageCircle, type LucideIcon } from 'lucide-react';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export function Navigation() {
     { href: '/predict', label: 'Predict', icon: BrainCircuit },
     { href: '/results', label: 'Results', icon: ChartBar },
     { href: '/model-info', label: 'Model Info', icon: Info },
+    { href: '/assistant', label: 'AI Assistant', icon: MessageCircle },
   ];
 
   return (

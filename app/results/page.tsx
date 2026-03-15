@@ -50,14 +50,40 @@ export default function ResultsPage() {
   const [riskLevel, setRiskLevel] = useState<RiskLevel>('High');
   const [probability, setProbability] = useState(72);
   const [mounted, setMounted] = useState(false);
+  const [aiInsight, setAiInsight] = useState<string>('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem('predictionData');
     if (raw) {
       const data = JSON.parse(raw);
       const p = Math.round(data.probability ?? 0);
+      const risk: RiskLevel = p < 35 ? 'Low' : p < 65 ? 'Medium' : 'High';
       setProbability(p);
-      setRiskLevel(p < 35 ? 'Low' : p < 65 ? 'Medium' : 'High');
+      setRiskLevel(risk);
+
+      // Fetch AI insight
+      setAiLoading(true);
+      fetch('/api/ai-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pregnancies: data.pregnancies ?? 0,
+          glucose: data.glucose ?? 0,
+          bloodPressure: data.bloodPressure ?? 0,
+          skinThickness: data.skinThickness ?? 0,
+          insulin: data.insulin ?? 0,
+          bmi: data.bmi ?? 0,
+          diabetesPedigree: data.diabetesPedigree ?? 0,
+          age: data.age ?? 0,
+          probability: p,
+          riskLevel: risk,
+        }),
+      })
+        .then((res) => res.json())
+        .then((json) => setAiInsight(json.insight ?? ''))
+        .catch(() => setAiInsight(''))
+        .finally(() => setAiLoading(false));
     }
     setTimeout(() => setMounted(true), 50);
   }, []);
@@ -300,6 +326,18 @@ export default function ResultsPage() {
         .fade-in:nth-child(2) { transition-delay: 0.1s; }
         .fade-in:nth-child(3) { transition-delay: 0.2s; }
         .fade-in:nth-child(4) { transition-delay: 0.3s; }
+
+        @keyframes ellipsis {
+          0% { content: '.'; }
+          33% { content: '..'; }
+          66% { content: '...'; }
+        }
+        .loading-dots {
+          display: inline-block;
+          animation: ellipsis 1.2s steps(3, end) infinite;
+          width: 1.5em;
+          text-align: left;
+        }
       `}</style>
 
       <Navigation />
@@ -408,6 +446,23 @@ export default function ResultsPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* AI Insight */}
+          <p className="section-label">AI-Powered Insight</p>
+          <div className={`notice fade-in${mounted ? ' visible' : ''}`} style={{ borderLeftColor: cfg.color }}>
+            <span className="notice-icon">AI</span>
+            {aiLoading ? (
+              <p className="notice-text" style={{ fontStyle: 'italic', color: 'var(--ink-faint)' }}>
+                Generating personalised health insight<span className="loading-dots">...</span>
+              </p>
+            ) : aiInsight ? (
+              <p className="notice-text">{aiInsight}</p>
+            ) : (
+              <p className="notice-text" style={{ color: 'var(--ink-faint)' }}>
+                AI insight unavailable. Please ensure the server is running and try again.
+              </p>
+            )}
           </div>
 
           {/* Notice */}
