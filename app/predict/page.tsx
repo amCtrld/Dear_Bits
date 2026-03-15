@@ -104,9 +104,24 @@ export default function PredictPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    sessionStorage.setItem('predictionData', JSON.stringify(formData));
-    router.push('/results');
+    try {
+      const res = await fetch('http://localhost:8000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('Prediction failed');
+      const result = await res.json();
+      sessionStorage.setItem(
+        'predictionData',
+        JSON.stringify({ ...formData, ...result })
+      );
+      router.push('/results');
+    } catch {
+      alert('Could not reach the prediction server. Make sure the backend is running.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const pct = (f: typeof fields[0]) =>

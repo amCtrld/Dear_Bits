@@ -1,16 +1,46 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
+  const [accuracy, setAccuracy] = useState<string>('—');
+  const [modelType, setModelType] = useState<string>('Classifier');
+  const [lastProb, setLastProb] = useState<string>('—');
+  const [lastRisk, setLastRisk] = useState<string>('No prediction yet');
+
+  useEffect(() => {
+    fetch('http://localhost:8000/model-info')
+      .then((r) => r.json())
+      .then((d) => {
+        setAccuracy(String(d.test_accuracy));
+        setModelType(d.model_type);
+      })
+      .catch(() => {});
+
+    const raw = sessionStorage.getItem('predictionData');
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.probability != null) {
+        const p = Math.round(data.probability);
+        setLastProb(String(p));
+        setLastRisk(
+          p < 35 ? 'Low risk · diabetes probability' :
+          p < 65 ? 'Medium risk · diabetes probability' :
+                   'High risk · diabetes probability'
+        );
+      }
+    }
+  }, []);
+
   const metrics = [
     {
       label: 'Model Accuracy',
-      value: '87',
-      unit: '%',
-      sub: 'Random Forest · PIMA dataset',
+      value: accuracy,
+      unit: accuracy !== '—' ? '%' : '',
+      sub: `${modelType} · PIMA dataset`,
     },
     {
       label: 'Dataset Size',
@@ -20,9 +50,9 @@ export default function Dashboard() {
     },
     {
       label: 'Last Prediction',
-      value: '78',
-      unit: '%',
-      sub: 'High risk · diabetes probability',
+      value: lastProb,
+      unit: lastProb !== '—' ? '%' : '',
+      sub: lastRisk,
     },
   ];
 
@@ -337,7 +367,7 @@ export default function Dashboard() {
           <h1 className="dash-title">
             Early Detection of <em>Diabetes</em> Using ML
           </h1>
-          <p className="dash-subtitle">Random Forest model · PIMA Indians Diabetes Dataset</p>
+          <p className="dash-subtitle">{modelType} model · PIMA Indians Diabetes Dataset</p>
         </header>
 
         <div className="dash-body">
@@ -376,7 +406,7 @@ export default function Dashboard() {
             <div className="info-card">
               <p className="info-card-label">About This System</p>
               <p>
-                A Random Forest classifier trained on the PIMA Indians Diabetes Dataset,
+                A {modelType} classifier trained on the PIMA Indians Diabetes Dataset,
                 validated for early-stage diabetes risk stratification using routine
                 clinical measurements.
               </p>

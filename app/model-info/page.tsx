@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/navigation';
 import {
   BarChart,
@@ -12,34 +13,69 @@ import {
   Cell,
 } from 'recharts';
 
+const ABBR_MAP: Record<string, string> = {
+  Pregnancies: 'PREG',
+  Glucose: 'GLUC',
+  BloodPressure: 'BP',
+  SkinThickness: 'SKIN',
+  Insulin: 'INS',
+  BMI: 'BMI',
+  DiabetesPedigreeFunction: 'DPF',
+  Age: 'AGE',
+};
+
+const DISPLAY_NAME: Record<string, string> = {
+  Pregnancies: 'Pregnancies',
+  Glucose: 'Glucose',
+  BloodPressure: 'Blood Pressure',
+  SkinThickness: 'Skin Thickness',
+  Insulin: 'Insulin',
+  BMI: 'BMI',
+  DiabetesPedigreeFunction: 'Diabetes Pedigree Function',
+  Age: 'Age',
+};
+
+interface ModelData {
+  model_type: string;
+  train_accuracy: number;
+  test_accuracy: number;
+  roc_auc: number;
+  features: string[];
+  feature_importance: { name: string; importance: number }[];
+  dataset_size: number;
+}
+
 export default function ModelInfoPage() {
-  const modelMetrics = [
-    { label: 'Model Type', value: 'Random Forest', mono: true },
-    { label: 'Training Accuracy', value: '89', unit: '%' },
-    { label: 'Testing Accuracy', value: '87', unit: '%' },
-  ];
+  const [data, setData] = useState<ModelData | null>(null);
 
-  const features = [
-    { name: 'Pregnancies', abbr: 'PREG' },
-    { name: 'Glucose', abbr: 'GLUC' },
-    { name: 'Blood Pressure', abbr: 'BP' },
-    { name: 'Skin Thickness', abbr: 'SKIN' },
-    { name: 'Insulin', abbr: 'INS' },
-    { name: 'BMI', abbr: 'BMI' },
-    { name: 'Diabetes Pedigree Function', abbr: 'DPF' },
-    { name: 'Age', abbr: 'AGE' },
-  ];
+  useEffect(() => {
+    fetch('http://localhost:8000/model-info')
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => {});
+  }, []);
 
-  const featureImportance = [
-    { name: 'Glucose', importance: 28 },
-    { name: 'BMI', importance: 24 },
-    { name: 'Age', importance: 18 },
-    { name: 'Insulin', importance: 12 },
-    { name: 'Pregnancies', importance: 8 },
-    { name: 'Blood Pressure', importance: 6 },
-    { name: 'Skin Thickness', importance: 3 },
-    { name: 'Diabetes Pedigree', importance: 1 },
-  ];
+  const modelMetrics = data
+    ? [
+        { label: 'Model Type', value: data.model_type, mono: true, unit: '' },
+        { label: 'Training Accuracy', value: String(data.train_accuracy), unit: '%', mono: false },
+        { label: 'Testing Accuracy', value: String(data.test_accuracy), unit: '%', mono: false },
+      ]
+    : [
+        { label: 'Model Type', value: '\u2014', mono: true, unit: '' },
+        { label: 'Training Accuracy', value: '\u2014', unit: '', mono: false },
+        { label: 'Testing Accuracy', value: '\u2014', unit: '', mono: false },
+      ];
+
+  const features = (data?.features ?? []).map((f) => ({
+    name: DISPLAY_NAME[f] ?? f,
+    abbr: ABBR_MAP[f] ?? f.slice(0, 4).toUpperCase(),
+  }));
+
+  const featureImportance = (data?.feature_importance ?? []).map((f) => ({
+    name: DISPLAY_NAME[f.name] ?? f.name,
+    importance: f.importance,
+  }));
 
   const methodology = [
     {
@@ -405,7 +441,7 @@ export default function ModelInfoPage() {
 
       <main className="mi-root">
         <header className="mi-header">
-          <p className="mi-eyebrow">Technical Reference · Random Forest Classifier</p>
+          <p className="mi-eyebrow">Technical Reference · {data?.model_type ?? 'Classifier'}</p>
           <h1 className="mi-title">Model <em>Information</em></h1>
           <p className="mi-subtitle">Architecture, dataset, and feature analysis</p>
         </header>
@@ -518,7 +554,7 @@ export default function ModelInfoPage() {
           </div>
 
           <div className="mi-footer">
-            <span>Random Forest · PIMA Indians Diabetes Dataset</span>
+            <span>{data?.model_type ?? 'Model'} · PIMA Indians Diabetes Dataset</span>
             <span>For research purposes only</span>
           </div>
         </div>

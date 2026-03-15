@@ -1,0 +1,2 @@
+Kill process using port 8000: fuser -k 8000/tcp 2>&1
+Start backend server: cd backend && source venv/bin/activate && uvicorn main:app --port 8000

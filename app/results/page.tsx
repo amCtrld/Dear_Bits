@@ -52,9 +52,10 @@ export default function ResultsPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const predictionData = sessionStorage.getItem('predictionData');
-    if (predictionData) {
-      const p = Math.floor(Math.random() * 100);
+    const raw = sessionStorage.getItem('predictionData');
+    if (raw) {
+      const data = JSON.parse(raw);
+      const p = Math.round(data.probability ?? 0);
       setProbability(p);
       setRiskLevel(p < 35 ? 'Low' : p < 65 ? 'Medium' : 'High');
     }
