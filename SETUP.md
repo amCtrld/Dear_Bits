@@ -130,9 +130,9 @@ Dear_Bits/
 
 ## Troubleshooting
 
-| Issue | Fix |
-|-------|-----|
-| Port 8000 already in use | `fuser -k 8000/tcp` (Linux) or `lsof -ti:8000 \| xargs kill` (macOS) |
-| `ModuleNotFoundError: joblib` | Activate the venv: `source backend/venv/bin/activate` |
-| sklearn version warning | Ensure `scikit-learn==1.6.1` is installed (`pip show scikit-learn`) |
-| CORS error in browser | Backend must be running on port 8000; frontend on port 3000 |
+| Issue                         | Fix                                                                  |
+|-------------------------------|----------------------------------------------------------------------|
+| Port 8000 already in use      | `fuser -k 8000/tcp` (Linux) or `lsof -ti:8000 \| xargs kill` (macOS) |
+| `ModuleNotFoundError: joblib` | Activate the venv: `source backend/venv/bin/activate`                |
+| sklearn version warning       | Ensure `scikit-learn==1.6.1` is installed (`pip show scikit-learn`)  |
+| CORS error in browser         | Backend must be running on port 8000; frontend on port 3000          |
