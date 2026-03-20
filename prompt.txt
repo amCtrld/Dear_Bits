@@ -1,0 +1,12 @@
+I need to write a dissertation academic report for this project. It should have the follwing chapters:
+
+1. Introduction
+2. Literature Review
+3. Research Methodology
+4. Results
+5. Discussion
+6. Conclusion
+7. References
+8. Appendices.
+
+I already have 1, and 2. I will also take care of 7. I need your help in analysing the entire system and devlop a plan on writing the documentation. On the results chapter, I will need to attach system results images. Similarly on the Discussion.

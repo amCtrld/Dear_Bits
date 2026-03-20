@@ -1,0 +1,7 @@
+{
+    "classifier__class_weight": "balanced",
+    "classifier__max_depth": 3,
+    "classifier__min_samples_leaf": 4,
+    "classifier__min_samples_split": 10,
+    "classifier__n_estimators": 200
+}
